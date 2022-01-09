@@ -37,10 +37,8 @@ exports.getUsers = async function (req, res) {
         usersData
          = JSON.parse(JSON.stringify(usersData
             ))
-        usersData
-         = usersData
-         const path = `${process.env.PATH_IMG}`
-        .map(x => {
+        const path = `${process.env.PATH_IMG}`
+        usersData = usersData.map(x => {
             return {
                 ...x,
                 image: path + x.image
