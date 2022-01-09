@@ -29,7 +29,7 @@ exports.addUser = async (req, res) => {
 
 exports.getUsers = async function (req, res) {
     try {
-        const usersData = await users.findAll({
+        let usersData = await users.findAll({
             attributes: {
                 exclude: ['password','createdAt','updatedAt']
             }
