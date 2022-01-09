@@ -43,7 +43,7 @@ exports.getUsers = async function (req, res) {
         .map(x => {
             return {
                 ...x,
-                image: path + x.img
+                image: path + x.image
             }
         })
         res.status(200).send({
