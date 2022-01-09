@@ -1,5 +1,4 @@
 'use strict';
-const { users } = require('../models')
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -12,7 +11,7 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
-     let valid = await users.findOne({
+     let valid = await queryInterface.findOne({
       where: {email : 'owner@mail.com'}
       })
 
