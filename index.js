@@ -24,4 +24,9 @@ app.use(express.json());
 app.use(cors());
 app.use('/img', express.static('./uploads/img'))
 app.use('/api/v1/', router)
+app.get('/', function (req, res) {
+  res.send({
+    message: 'check ok!',
+  });
+});
 server.listen(port , ()=>{console.log(`listen port ${port}`)})
