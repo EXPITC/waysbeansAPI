@@ -34,7 +34,6 @@ exports.getUsers = async function (req, res) {
                 exclude: ['password','createdAt','updatedAt']
             }
         });
-        const path = 'http://localhost:5000/img/'
         usersData
          = JSON.parse(JSON.stringify(usersData
             ))
@@ -43,7 +42,7 @@ exports.getUsers = async function (req, res) {
         .map(x => {
             return {
                 ...x,
-                image: path + x.image
+                image: process.env.PATH + x.image
             }
         })
         res.status(200).send({

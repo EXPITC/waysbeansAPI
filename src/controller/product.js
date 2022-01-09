@@ -1,5 +1,6 @@
 const { products, users} = require('../../models')
 require('dotenv').config();
+const path = `${process.env.PATH}`
 
 exports.getProducts = async (req, res) => {
     try {
@@ -19,8 +20,6 @@ exports.getProducts = async (req, res) => {
                 exclude: ['sellerId','createdAt','updatedAt']
             }
         })
-        
-        const path = `${process.PORT}/img/`
         data = JSON.parse(JSON.stringify(data))
         data = data.map(x => {
             return {
@@ -60,7 +59,6 @@ exports.getProductsAll = async (req, res) => {
                 ['id', 'DESC']
             ],
         })
-        const path = 'http://localhost:5000/img/'
         data = JSON.parse(JSON.stringify(data))
         data = data.map(x => {
             return {
@@ -105,7 +103,6 @@ exports.getProduct = async (req, res) => {
                 message: 'product details not found'
             })
         }
-        const path = 'http://localhost:5000/img/'
         data = JSON.parse(JSON.stringify(data))
         data = [data].map(x => {
             return {
@@ -175,9 +172,9 @@ exports.deleteProduct = async (req, res) => {
         }
         
         const fs = require('fs')
-        const path = `./uploads/img/${productData.img}`
+        const Path = `./uploads/img/${productData.img}`
         try {
-            fs.unlinkSync(path)
+            fs.unlinkSync(Path)
         } catch (error) {
             console.log(error)
         }
@@ -210,7 +207,7 @@ exports.editProduct = async (req, res) => {
         })
 
         const fs = require('fs')
-        const path = `./uploads/img/${productData.img}`
+        const Path = `./uploads/img/${productData.img}`
         if (req.file?.filename) {
             if (req.body?.img != productData.img) {
                 data = {
@@ -218,7 +215,7 @@ exports.editProduct = async (req, res) => {
                     img: req.file?.filename
                 }
                 try {
-                    fs.unlinkSync(path)
+                    fs.unlinkSync(Path)
                 } catch (error) {
                     console.log(error)
                 }
