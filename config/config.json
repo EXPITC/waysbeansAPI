@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": null,
-    "database": "waysbeans_api",
+    "database": "waysbeans_api_",
     "host": "localhost",
     "dialect": "mysql"
   },
