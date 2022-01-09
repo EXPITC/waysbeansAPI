@@ -1,5 +1,6 @@
 'use strict';
 const { users } = require('../models')
+require('dotenv').config();
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -18,6 +19,7 @@ module.exports = {
 
       if (valid) {
         console.log('already have owner')  
+        console.log(process.env.PORT)
       } else {
         await queryInterface.bulkInsert(
          'users',
