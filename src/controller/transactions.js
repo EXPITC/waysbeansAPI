@@ -1,7 +1,7 @@
 const { transactions ,users , products , order} = require('../../models')
 const Op = require('sequelize').Op;
 require('dotenv').config();
-
+const path = `${process.env.PATH}`
 exports.addTransaction = async (req, res) => {
     try {
         const thenTransaction = await transactions.findOne({
@@ -257,7 +257,6 @@ exports.getTransactionActive = async (req, res) => {
                 exclude: ['createdAt', 'updatedAt']
             }
         })
-        const path = 'http://localhost:5000/img/'
         data = JSON.parse(JSON.stringify(data))
         let product = data.map(x => {
             return {
@@ -385,7 +384,6 @@ exports.getTransaction = async (req, res) => {
                 exclude: ['createdAt', 'updatedAt']
             }
         })
-        const path = 'http://localhost:5000/img/'
         data = JSON.parse(JSON.stringify(data))
         let product = data.map(x => {
             return {
