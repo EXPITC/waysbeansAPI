@@ -1,5 +1,5 @@
 const { transactions ,users , products , order , rating} = require('../../models')
-const Op = require('Sequelize').Op;
+const Op = require('sequelize').Op;
 const { userCheck, admin, owner } = require('../middleware/userCheck')
 const jwt = require('jsonwebtoken');
 
