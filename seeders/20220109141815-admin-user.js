@@ -20,7 +20,7 @@ module.exports = {
       if (valid) {
         console.log('already have owner')  
         console.log(process.env.PORT)
-        console.log(process.env.PATH)
+        console.log(process.env.PATH_IMG)
       } else {
         await queryInterface.bulkInsert(
          'users',

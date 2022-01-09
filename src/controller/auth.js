@@ -4,7 +4,7 @@ require("dotenv").config();
 const joi = require('joi')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const path = `${process.env.PATH}`
+const path = `${process.env.PATH_IMG}`
 
 exports.register = async (req, res) => {
     const schema = joi.object({

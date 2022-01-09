@@ -3,7 +3,7 @@ const { transactions, users, products, order, rating } = require('../../models')
 const Op = require('sequelize').Op;
 const { userCheck, admin, owner } = require('../middleware/userCheck')
 const jwt = require('jsonwebtoken');
-const path = `${process.env.PATH}`
+const path = `${process.env.PATH_IMG}`
 const socketIo = (io) => {
   io.use((socket, next) => {
     if (socket.handshake.auth && socket.handshake.auth.token ) {

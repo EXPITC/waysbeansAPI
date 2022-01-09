@@ -1,6 +1,6 @@
 const { products, users} = require('../../models')
 require('dotenv').config();
-const path = `${process.env.PATH}`
+const path = `${process.env.PATH_IMG}`
 
 exports.getProducts = async (req, res) => {
     try {

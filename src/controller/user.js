@@ -39,10 +39,11 @@ exports.getUsers = async function (req, res) {
             ))
         usersData
          = usersData
+         const path = `${process.env.PATH_IMG}`
         .map(x => {
             return {
                 ...x,
-                image: process.env.PATH + x.image
+                image: path + x.image
             }
         })
         res.status(200).send({

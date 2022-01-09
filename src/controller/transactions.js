@@ -1,7 +1,7 @@
 const { transactions ,users , products , order} = require('../../models')
 const Op = require('sequelize').Op;
 require('dotenv').config();
-const path = `${process.env.PATH}`
+const path = `${process.env.PATH_IMG}`
 exports.addTransaction = async (req, res) => {
     try {
         const thenTransaction = await transactions.findOne({
