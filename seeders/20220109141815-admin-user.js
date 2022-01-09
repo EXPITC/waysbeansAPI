@@ -27,7 +27,9 @@ module.exports = {
              password: '$2b$08$4sDpJvJJ7msCddZ00n019.8O/ub9umIBe4wqivyDmGgDReAClyK9.8O/ub9umIBe4wqivy',  //123123
              fullname: 'owner',
              role: 'owner',
-             image: 'LOFI.jpg'
+             image: 'LOFI.jpg',
+             createdAt: '2021-12-23 00:24:21',
+             updatedAt: '2021-12-23 00:24:21'
            },
          ],
          {}
