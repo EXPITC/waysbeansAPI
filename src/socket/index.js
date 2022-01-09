@@ -1,8 +1,9 @@
-const { transactions ,users , products , order , rating} = require('../../models')
+require('dotenv').config();
+const { transactions, users, products, order, rating } = require('../../models')
 const Op = require('sequelize').Op;
 const { userCheck, admin, owner } = require('../middleware/userCheck')
 const jwt = require('jsonwebtoken');
-
+const path = `${process.env.PATH}`
 const socketIo = (io) => {
   io.use((socket, next) => {
     if (socket.handshake.auth && socket.handshake.auth.token ) {
@@ -63,7 +64,6 @@ const socketIo = (io) => {
           ],
           order: [['createdAt', 'DESC']]
         })
-        const path = 'http://localhost:5000/img/'
         data = JSON.parse(JSON.stringify(data))
         data = data.map(x => {
             return {
