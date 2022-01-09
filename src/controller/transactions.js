@@ -1,5 +1,5 @@
 const { transactions ,users , products , order} = require('../../models')
-const Op = require('Sequelize').Op;
+const Op = require('sequelize').Op;
 require('dotenv').config();
 
 exports.addTransaction = async (req, res) => {
