@@ -1,5 +1,5 @@
 const { rating } = require('../../models')
-
+require('dotenv').config();
 
 
 exports.token = async(req, res) => {

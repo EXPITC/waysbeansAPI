@@ -1,4 +1,5 @@
 const { products, users} = require('../../models')
+require('dotenv').config();
 
 exports.getProducts = async (req, res) => {
     try {

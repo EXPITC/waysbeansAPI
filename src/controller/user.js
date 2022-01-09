@@ -1,6 +1,7 @@
 const { and } = require('sequelize/dist/lib/operators');
 const {users , resto ,products} =  require('../../models');
 // const  = require('../../models/products');
+require('dotenv').config();
 
 exports.addUser = async (req, res) => {
     try {

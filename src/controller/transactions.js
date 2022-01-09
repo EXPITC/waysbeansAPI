@@ -1,5 +1,7 @@
 const { transactions ,users , products , order} = require('../../models')
 const Op = require('Sequelize').Op;
+require('dotenv').config();
+
 exports.addTransaction = async (req, res) => {
     try {
         const thenTransaction = await transactions.findOne({
