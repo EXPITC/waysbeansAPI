@@ -8,9 +8,7 @@ exports.addTransaction = async (req, res) => {
         const thenTransaction = await transactions.findOne({
             where: {
                 buyerId: req.user.id,
-                status: {
-                    [Op.or] : ['Order']
-                }
+                status: 'Order'
            } 
         })
         console.log('pass 2')
