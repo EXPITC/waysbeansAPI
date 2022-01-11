@@ -9,18 +9,23 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       name: {
+        allowNull: true,
         type: Sequelize.STRING
       },
       email: {
+        allowNull: true,
         type: Sequelize.STRING
       },
       phone: {
+        allowNull: true,
         type: Sequelize.STRING
       },
       address: {
+        allowNull: true,
         type: Sequelize.STRING
       },
       attachment: {
+        allowNull: true,
         type: Sequelize.STRING
       },
       sellerId: {
