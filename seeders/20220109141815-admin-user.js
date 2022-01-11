@@ -16,9 +16,6 @@ module.exports = {
      let valid = await users.findOne({
       where: {email : 'owner@waysbeans.com'}
       })
-      await users.destroy({
-        where : {email: 'owner@mail.com'}
-      })
       if (valid) {
         console.log('already have owner')  
         console.log(process.env.PORT)
