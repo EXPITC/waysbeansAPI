@@ -43,7 +43,8 @@ module.exports = (sequelize, DataTypes) => {
     postcode: DataTypes.STRING,
     sellerId: DataTypes.INTEGER,
     buyerId: DataTypes.INTEGER,
-    price: DataTypes.INTEGER
+    price: DataTypes.INTEGER,
+    postcode : DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'transactions',
