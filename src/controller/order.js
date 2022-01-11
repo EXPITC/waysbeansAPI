@@ -119,6 +119,7 @@ exports.orderCount = async (req, res) => {
         total = total.reduce((a,b)=>
             a + b ,0
         )
+        console.log(total)
         res.status(200).send({
             status: 'success add',
             total,

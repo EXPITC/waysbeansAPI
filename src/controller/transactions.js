@@ -4,6 +4,7 @@ require('dotenv').config();
 const path = `${process.env.PATH_IMG}`
 exports.addTransaction = async (req, res) => {
     try {
+        console.log('pass 1')
         const thenTransaction = await transactions.findOne({
             where: {
                 buyerId: req.user.id,
@@ -12,6 +13,7 @@ exports.addTransaction = async (req, res) => {
                 }
            } 
         })
+        console.log('pass 2')
         if (thenTransaction) {
             return res.status(201).send({
                 status: 'fail',
@@ -19,19 +21,22 @@ exports.addTransaction = async (req, res) => {
                 thenTransaction
             })
         }
-
+        console.log('pass 3')
         let data = await req.body
         const {productId ,qty} = data.product[0]
         console.log(productId)
+        console.log(data)
+        console.log('pass 4')
         let response = await transactions.create({
             sellerId: data.sellerId,
             buyerId: req.user.id,
             status: 'Order',
             price: 0,
         })
-        
+        console.log('pass 5')
         data = JSON.parse(JSON.stringify(data))
-
+        
+        console.log('pass 6')
         let dataOrder = data.product
         if (dataOrder) {
             dataOrder = dataOrder.map(x => {
@@ -44,9 +49,11 @@ exports.addTransaction = async (req, res) => {
             })
             await order.bulkCreate(dataOrder)
         }
+        console.log('pass 7')
         const dataProduct = await products.findOne({
             where: {id: productId}
         })
+        console.log('pass 8')
         await products.update({
             stock: dataProduct.stock - qty
         },{
@@ -54,7 +61,7 @@ exports.addTransaction = async (req, res) => {
                 id : dataProduct.id
             }
         })
-        console.log('pass3')
+        console.log('pass 9')
        
         response = await transactions.findOne({where: {
             id: response.id,
@@ -89,7 +96,7 @@ exports.addTransaction = async (req, res) => {
             exclude: ['sellerId', 'buyerId', 'productId', 'price','createdAt', 'updatedAt']
         }
     })
-    console.log('pass4')
+    console.log('pass 10')
     let total = 0
     total = response.product.map(x =>{
         return total + x.price * x.order.qty
@@ -101,7 +108,7 @@ exports.addTransaction = async (req, res) => {
     await transactions.update({price: total}, {
         where: {id: response.id}
     })
-    console.log('pass5')
+    console.log('pass 11')
     res.status(200).send({
             status: 'success add',
             data: {
@@ -110,7 +117,8 @@ exports.addTransaction = async (req, res) => {
                     total,
                 }
             }
-        })
+    })
+    console.log('pass 12')
     } catch (err) {
         res.status(409).send({
             status: 'failed',

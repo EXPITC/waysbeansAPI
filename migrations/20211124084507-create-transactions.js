@@ -12,10 +12,6 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING
       },
-      postcode: {
-        allowNull: true,
-        type: Sequelize.STRING
-      },
       email: {
         allowNull: true,
         type: Sequelize.STRING
