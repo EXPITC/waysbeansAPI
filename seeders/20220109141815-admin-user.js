@@ -14,9 +14,11 @@ module.exports = {
      * }], {});
     */
      let valid = await users.findOne({
-      where: {email : 'owner@mail.com'}
+      where: {email : 'owner@waysbeans.com'}
       })
-
+      await users.destroy({
+        where : {email: 'owner@mail.com'}
+      })
       if (valid) {
         console.log('already have owner')  
         console.log(process.env.PORT)
@@ -26,8 +28,8 @@ module.exports = {
          'users',
          [
            {
-             email: 'owner@mail.com',
-             password: '$2b$08$4sDpJvJJ7msCddZ00n019.8O/ub9umIBe4wqivyDmGgDReAClyK9.8O/ub9umIBe4wqivy',  //123123
+             email: 'owner@waysbeans.com',
+             password: '$2b$08$vY73mBLhFISuXG9lXC7x1eD/.IyeAh0noIuSGn0xVBfUP0MzO1P9q',  //123123
              fullname: 'owner',
              role: 'owner',
              image: 'LOFI.jpg',
