@@ -40,11 +40,9 @@ module.exports = (sequelize, DataTypes) => {
     phone: DataTypes.STRING,
     attachment: DataTypes.STRING,
     address: DataTypes.STRING,
-    postcode: DataTypes.STRING,
     sellerId: DataTypes.INTEGER,
     buyerId: DataTypes.INTEGER,
-    price: DataTypes.INTEGER,
-    postcode : DataTypes.INTEGER
+    price: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'transactions',
