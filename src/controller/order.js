@@ -124,7 +124,7 @@ exports.orderCount = async (req, res) => {
             total,
             id : transaction?.id
         })
-    } catch (error) {
+    } catch (err) {
         res.status(409).send({
             status: 'failed',
             message: 'server error: ' + err.message
