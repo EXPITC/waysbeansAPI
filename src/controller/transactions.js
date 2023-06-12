@@ -2,7 +2,6 @@ const { transactions, users, products, order } = require("../../models");
 const db = require("../database/connection");
 const Op = require("sequelize").Op;
 require("dotenv").config();
-const path = `${process.env.PATH_IMG}`;
 
 exports.addTransaction = async (req, res) => {
   const t = await db.Sequelize.transaction();
@@ -336,7 +335,7 @@ exports.getTransactionActive = async (req, res) => {
   }
 };
 
-exports.getTransactionsAdmin = async (req, res) => {
+exports.getTransactionsAdmin = async (_req, res) => {
   try {
     const data = await transactions.findAll({
       include: [
