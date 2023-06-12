@@ -1,414 +1,461 @@
-const { order , transactions, products } = require('../../models')
-const Op = require('sequelize').Op;
-require('dotenv').config();
+const { order, transactions, products } = require("../../models");
+const db = require("../database/connection");
+const Op = require("sequelize").Op;
+require("dotenv").config();
 
 exports.addOrder = async (req, res) => {
-    try {
-        const data = req.body
-        const {transactionId ,productId , qty} = data
-        let add = await order.findOne({
-            where: {
-                transactionId,
-                productId
-            },
-            attributes: {
-                include: ['id']
-            }
-        })
-        const dataProduct = await products.findOne({
-            where: {id: productId}
-        })
-        const dataTransaction = await transactions.findOne({
-            where: {id: transactionId}
-        })
-        if (add) { 
-            if (dataProduct.stock === 0) {
-                return (
-                    res.status(200).send({
-                        status: 'product out stock',
-                        dataProduct
-                    })
-                )
-           }
-            await order.update({
-                ...add,
-                qty: add.qty + qty
-            },{
-                where: {
-                    id : add.id
-                }
-            })
-            await products.update({
-                stock: dataProduct.stock - qty
-            },{
-                where: {
-                    id : dataProduct.id
-                }
-            })
-            await transactions.update({
-                price: qty * dataProduct.price + dataTransaction.price
-            },
-            {
-                where: {id: transactionId}
-            }
-            )
-            return res.status(200).send({
-                status: 'success add',
-                data: {
-                    order: {
-                        add
-                    }
-                }
-            })
-        }
-        const newAdd = await order.create({
-            ...data,
-            status: "pending",
-            buyerId: req.user.id
-        })
-        await products.update({
-            stock: dataProduct.stock - qty
-        },{
-            where: {
-                id : dataProduct.id
-            }
-        })
-        await transactions.update({
-            price: qty * dataProduct.price + dataTransaction.price
-        },{
-            where: {id: transactionId}
-        })
-        res.status(200).send({
-            status: 'success add',
-            data: {
-                order: {
-                    newAdd
-                }
-            }
-        })
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
+  const t = await db.Sequelize.transaction();
+  try {
+    const data = req.body;
+    const { transactionId } = data;
+    const isValidBody =
+      data.products.reduce(
+        (condition, p) => (!p.productId || !p.qty ? false : condition),
+        true
+      ) && !!transactionId;
+
+    if (!isValidBody) {
+      await t.rollback();
+      return res.status(500).send({
+        status: "failed",
+        message: "Cant retrive transaction Id, product Id, or quantity",
+      });
     }
-}
+
+    const { products: dataProducts } = data;
+
+    let price = 0;
+
+    // Execute batch that sync with transaction & product
+    for (const o of dataProducts) {
+      const { productId, qty } = o; //Order;
+      // Get data product for quantity
+      const dataProduct = await products.findOne({
+        where: { id: productId },
+      });
+
+      if (!dataProducts) throw Error("product cannot be found");
+
+      // Product out of stock then return
+      if (dataProduct.stock <= 0) {
+        await t.rollback();
+        return res.status(200).send({
+          status: "product out stock",
+          dataProduct,
+        });
+      }
+
+      let dataOrder = await order.findOne({
+        where: {
+          transactionId,
+          productId,
+        },
+      });
+
+      // Execute base on previous order data has been created or not
+      if (dataOrder) {
+        // Update data order
+        await dataOrder.increment({ qty }, { transaction: t });
+      } else {
+        // Create new data order
+        dataOrder = await order.create(
+          {
+            productId,
+            qty,
+            transactionId,
+            buyerId: req.user.id,
+          },
+          { transaction: t }
+        );
+      }
+
+      // Sync stock
+      await dataProduct.decrement({ stock: qty }, { transaction: t });
+
+      price = price + dataProduct.price * qty;
+    }
+
+    // Update price in this Transaction price by new qty
+    const dataTransaction = await transactions.findOne({
+      where: { id: transactionId },
+    });
+
+    await dataTransaction.increment({ price }, { transaction: t });
+
+    // Commit
+    await t.commit();
+    res.status(200).send({
+      status: "success add",
+      data: {
+        order: dataTransaction.product,
+      },
+    });
+  } catch (err) {
+    await t.rollback();
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
 exports.orderCount = async (req, res) => {
-    try {
-        const transaction = await transactions.findOne({
-            where: {
-                buyerId: req.user.id,
-                status: {
-                    [Op.or]: ['Order']
-                }
-            }
-        })
-        let data = []
-        if (transaction) {
-            data = await order.findAll({
-                where: {
-                    buyerId: req.user.id,
-                    transactionId: transaction.id
-                }
-            })
-        }
-        let total = 0
-        total = data.map(x =>{
-            return x.qty
-        })
-        total = total.reduce((a,b)=>
-            a + b ,0
-        )
-        console.log(total)
-        res.status(200).send({
-            status: 'success add',
-            total,
-            id : transaction?.id
-        })
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
+  try {
+    const transaction = await transactions.findOne({
+      where: {
+        buyerId: req.user.id,
+        status: {
+          [Op.or]: ["Order"],
+        },
+      },
+    });
+
+    let userOrder = [];
+    let total = 0;
+    if (transaction) {
+      userOrder = await order.findAll({
+        where: {
+          buyerId: req.user.id,
+          transactionId: transaction.id,
+        },
+        attributes: {
+          exclude: [
+            "updateAt",
+            "transactionId",
+            "productId",
+            "buyerId",
+            "status",
+          ],
+        },
+      });
+
+      if (!userOrder) return;
+
+      // total = userOrder.map((order) => order.qty);
+      // total = total.reduce((a, b) => a + b, 0);
+      total = userOrder.reduce((qty, order) => qty + order.qty, 0);
     }
-}
+
+    res.status(200).send({
+      status: "success add",
+      total,
+      id: transaction?.id,
+    });
+  } catch (err) {
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
 
 exports.getOrders = async (req, res) => {
-    try {
-        const buyerId = req.user.id
-        const data = await order.findAll({
-            where: { buyerId: buyerId },
-            attributes: {
-                include: ['id']
-            }
-        })
-        res.status(200).send({
-            status: 'success',
-            data: {
-                order : data
-            }
-        })
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
-    }
-}
-exports.getOrdersAdmin = async (req, res) => {
-    try {
-        const data = await order.findAll({
-            attributes: {
-                include: ['id']
-            }
-        })
-        res.status(200).send({
-            status: 'success',
-            data: {
-                order : data
-            }
-        })
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
-    }
-}
+  try {
+    const buyerId = req.user.id;
+    const data = await order.findAll({
+      where: { buyerId: buyerId },
+      attributes: {
+        include: ["id"],
+      },
+    });
+    res.status(200).send({
+      status: "success",
+      data: {
+        order: data,
+      },
+    });
+  } catch (err) {
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
+exports.getOrdersAdmin = async (_req, res) => {
+  try {
+    const data = await order.findAll({
+      attributes: {
+        include: ["id"],
+      },
+    });
+    res.status(200).send({
+      status: "success",
+      data: {
+        order: data,
+      },
+    });
+  } catch (err) {
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
 exports.getOrder = async (req, res) => {
-    try {
-        const { id } = req.params
-        const buyerId = req.user.id
-        const data = await order.findOne({
-            where: { id, buyerId:buyerId },
-            attributes: {
-                include: ['id']
-            }
-        })
-        if (!data) {
-            return res.status(400).send({
-                status: 'failed',
-                message: 'order details not found'
-            })
-        }
-        res.status(200).send({
-            status: 'success',
-            data
-        })
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
+  try {
+    const { id } = req.params;
+    const buyerId = req.user.id;
+    const data = await order.findOne({
+      where: { id, buyerId: buyerId },
+      attributes: {
+        include: ["id"],
+      },
+    });
+    if (!data) {
+      return res.status(400).send({
+        status: "failed",
+        message: "order details not found",
+      });
     }
-}
+    res.status(200).send({
+      status: "success",
+      data,
+    });
+  } catch (err) {
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
 
 exports.getOrderProduct = async (req, res) => {
-    try {
-        const { id } = req.params
-        const data = await order.findOne({
-            where: {
-                productId: id,
-            }
-        })
-        res.status(200).send({
-            status: 'success',
-            data
-        })
-        
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
-    }
-}
+  try {
+    const { id } = req.params;
+    const data = await order.findOne({
+      where: {
+        productId: id,
+      },
+    });
+    res.status(200).send({
+      status: "success",
+      data,
+    });
+  } catch (err) {
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
 
 exports.updateOrder = async (req, res) => {
-    try {
-        const { id } = req.params
-        const buyerId = req.user.id
-        const data = await order.findOne({
-            where: { id, buyerId:buyerId }
-        })
-        if (!data) {
-            return res.status(400).send({
-                status: 'failed',
-                message: 'order details not found'
-            })
-        }
-        const newData  = req.body
-        await order.update(newData,{where : {id}})
-        res.status(200).send({
-            status: 'success',
-            data
-        })
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
+  try {
+    const { id } = req.params;
+    const buyerId = req.user.id;
+    const data = await order.findOne({
+      where: { id, buyerId: buyerId },
+    });
+    if (!data) {
+      return res.status(400).send({
+        status: "failed",
+        message: "order details not found",
+      });
     }
-}
+    const newData = req.body;
+    await order.update(newData, { where: { id } });
+    res.status(200).send({
+      status: "success",
+      data,
+    });
+  } catch (err) {
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
 exports.lessOrder = async (req, res) => {
-    try {
-        const data = req.body
-        const {transactionId ,productId , qty} = data
-        let less = await order.findOne({
-            where: {
-                transactionId,
-                productId
-            },
-            attributes: {
-                include: ['id']
-            }
-        })
-        const dataProduct = await products.findOne({
-            where: {id: productId}
-        })
-        const dataTransaction = await transactions.findOne({
-            where: {id: transactionId}
-        })
-        if (less) { 
-           
-            await order.update({
-                ...less,
-                qty: less.qty - qty
-            },{
-                where: {
-                    id : less.id
-                }
-            })
-            await products.update({
-                stock: dataProduct.stock + qty
-            },{
-                where: {
-                    id : dataProduct.id
-                }
-            })
-            await transactions.update({
-                price: dataTransaction.price - qty * dataProduct.price 
-            },
-            {
-                where: {id: transactionId}
-            }
-            )
-            if (less.qty - qty == 0) {
-                await order.destroy({
-                    where: {
-                        transactionId,
-                        productId
-                    },
-                })
-                const x = await transactions.findOne({
-                    where: { id: transactionId },
-                    include : {
-                        model: products,
-                        as: 'product',
-                        through: {
-                            model: order
-                        },
-                        attributes: {
-                            exclude: ['createdAt','updatedAt']
-                        }
-                    }
-                })
-                if (x?.product < 1) {
-                    await transactions.destroy({
-                        where: { id: transactionId }
-                    })
-                }
-            }
-            return res.status(200).send({
-                status: 'success less',
-                data: {
-                    order: {
-                        less
-                    }
-                }
-            })
-        }
-        res.status(200).send({
-            status: 'success',
-            data
-        })
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
+  const t = await db.Sequelize.transaction();
+  let isT = false; // for rollback;
+  const t2 = await db.Sequelize.transaction();
+
+  try {
+    const data = req.body;
+    const { transactionId } = data;
+
+    const isValidBody =
+      data.products.reduce(
+        (condition, p) => (!p.productId || !p.qty ? false : condition),
+        true
+      ) && !!transactionId;
+
+    if (!isValidBody) {
+      await t.rollback();
+      await t2.rollback();
+      return res.status(500).send({
+        status: "failed",
+        message: "Cant retrive transaction Id, product Id, or quantity",
+      });
     }
-}
-exports.deletedOrder = async (req, res) => {
-    try {
-        const { id } = req.params
-        const buyerId = req.user.id
-        const orderData = await order.findOne({
-            where: {
-                id,
-                buyerId: buyerId
-            }
-        })
-        if (!orderData) {
-            return res.status(400).send({
-                status: 'fail',
-                message: 'order not found',
-                data: { 
-                    order: "order details not found"
-                }
-            })
-        }
-        const {productId ,transactionId ,qty} = orderData
-        const dataProduct = await products.findOne({
-            where: {id: productId}
-        })
-        const dataTransaction = await transactions.findOne({
-            where: { id: transactionId }
-        })
-        
-        await transactions.update({
-            price: dataTransaction.price - qty * dataProduct.price 
+
+    const { products: dataProducts } = data;
+
+    let price = 0;
+
+    // loop for each product
+    for (const o of dataProducts) {
+      const { productId, qty } = o;
+
+      // Get data product for quantity increment
+      const dataProduct = await products.findOne({
+        where: { id: productId },
+      });
+
+      if (!dataProducts) throw Error("product cannot be found");
+
+      await dataProduct.increment({ stock: qty }, { transaction: t });
+
+      // Get data order for quantity decrement
+      const dataOrder = await order.findOne({
+        where: {
+          transactionId,
+          productId,
         },
-        {
-            where: {id: transactionId}
-        })
-        await products.update({
-            stock: dataProduct.stock + qty
-        },{
-            where: {
-                id : dataProduct.id
-            }
-        })
+      });
+
+      if (!dataOrder) throw Error("order cannot be found");
+
+      await dataOrder.decrement({ qty }, { transaction: t });
+
+      // Delete order if order qty reach zero
+      console.log(dataOrder);
+      console.log(dataOrder.qty);
+      console.log(dataOrder.qty <= 0);
+      console.log("WAHOOOOO");
+      if (dataOrder.qty <= 0)
         await order.destroy({
-            where: {id}
-        })
-        let x = await transactions.findOne({
-            where: { id: transactionId },
-            include : {
-                model: products,
-                as: 'product',
-                through: {
-                    model: order
-                },
-                attributes: {
-                    exclude: ['createdAt','updatedAt']
-                }
-            }
-        })
-        if (x?.product < 1) {
-            await transactions.destroy({
-                where: { id: transactionId }
-            })
-        }
-        res.send({
-            status: 'success',
-            message: 'order successfully destroy' 
-        })
-        
-    } catch (err) {
-        res.status(409).send({
-            status: 'failed',
-            message: 'server error: ' + err.message
-        })
+          where: { transactionId, productId },
+          transaction: t,
+        });
+
+      price = price + dataProduct.price * qty;
     }
-}
+
+    // Update price in this Transaction price by new qty
+    const dataTransaction = await transactions.findOne({
+      where: { id: transactionId },
+    });
+
+    if (!dataTransaction) throw Error("transactions cannot be found");
+
+    await dataTransaction.decrement({ price }, { transaction: t });
+
+    await t.commit();
+    isT = true;
+
+    const updatedTransaction = await transactions.findOne({
+      where: { id: transactionId },
+      include: {
+        model: products,
+        as: "product",
+        through: {
+          model: order,
+        },
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
+        },
+      },
+    });
+
+    // Destroy transaction if transactions have not product
+    if (updatedTransaction.product.length <= 0) {
+      await transactions.destroy({
+        where: { id: transactionId },
+        transaction: t2,
+      });
+    }
+    await t2.commit();
+
+    res.status(200).send({
+      status: "success less",
+      data: {
+        order: updatedTransaction.product,
+      },
+    });
+  } catch (err) {
+    if (!isT) await t.rollback();
+    await t2.rollback();
+
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
+exports.deletedOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const buyerId = req.user.id;
+    const orderData = await order.findOne({
+      where: {
+        id,
+        buyerId: buyerId,
+      },
+    });
+    if (!orderData) {
+      return res.status(400).send({
+        status: "fail",
+        message: "order not found",
+        data: {
+          order: "order details not found",
+        },
+      });
+    }
+    const { productId, transactionId, qty } = orderData;
+    const dataProduct = await products.findOne({
+      where: { id: productId },
+    });
+    const dataTransaction = await transactions.findOne({
+      where: { id: transactionId },
+    });
+
+    await transactions.update(
+      {
+        price: dataTransaction.price - qty * dataProduct.price,
+      },
+      {
+        where: { id: transactionId },
+      }
+    );
+    await products.update(
+      {
+        stock: dataProduct.stock + qty,
+      },
+      {
+        where: {
+          id: dataProduct.id,
+        },
+      }
+    );
+    await order.destroy({
+      where: { id },
+    });
+    let x = await transactions.findOne({
+      where: { id: transactionId },
+      include: {
+        model: products,
+        as: "product",
+        through: {
+          model: order,
+        },
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
+        },
+      },
+    });
+    if (x?.product < 1) {
+      await transactions.destroy({
+        where: { id: transactionId },
+      });
+    }
+    res.send({
+      status: "success",
+      message: "order successfully destroy",
+    });
+  } catch (err) {
+    res.status(409).send({
+      status: "failed",
+      message: "server error: " + err.message,
+    });
+  }
+};
