@@ -5,10 +5,14 @@
   "main": "index.js",
   "scripts": {
     "local": "nodemon index.js",
-    "build": "npx sequelize-cli db:migrate --env production & npx sequelize-cli db:seed:all",
+    "build": "npx sequelize-cli db:migrate --env production && npx sequelize-cli db:seed:all",
     "start": "node index.js",
     "client": "npm start --prefix ../WaysBeans",
     "dev": "concurrently \"npm run local\" \"npm run client\" "
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.10.0 <8"
   },
   "author": "tc",
   "license": "ISC",
