@@ -58,12 +58,7 @@ router.patch(
   uploadImg("image", true),
   editProduct
 );
-// router.patch(
-//   "/productImg/:id",
-//   userCheck,
-//   uploadImg("image", true),
-//   editProduct
-// );
+
 router.delete("/product/:id", userCheck, owner, deleteProduct);
 
 // transaction
@@ -119,5 +114,3 @@ router.patch("/order/:id", userCheck, updateOrder);
 router.delete("/order/:id", userCheck, deletedOrder);
 
 module.exports = router;
-
-// TODO:don't forget to del add on router

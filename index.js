@@ -22,6 +22,7 @@ const corsConf = {
 app.use(cors(corsConf));
 app.options(process.env.FE_ORIGIN, cors(corsConf));
 
+// For manual payment, store at local
 // app.use("/img", express.static("./uploads/img"));
 
 // Default route
@@ -42,7 +43,7 @@ httpServer.listen(port, () => {
 const io = new Server(httpServer, {
   cors: {
     origin: `${process.env.FE_ORIGIN}`,
-    // credentials: true, // Disable this for local dev
+    credentials: true, // Disable this for local dev
     methods: ["GET", "POST"],
   },
 });

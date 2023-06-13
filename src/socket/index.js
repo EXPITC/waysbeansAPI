@@ -200,7 +200,6 @@ const socketIo = (io) => {
         ],
         order: [["createdAt", "DESC"]],
       });
-      console.log(data);
       socket.broadcast.emit("newTransactionData", data);
     });
 
@@ -271,12 +270,11 @@ const socketIo = (io) => {
 
         socket.emit("acceptData", data);
         const roomBuyer = "update/transaction/" + data.buyerId;
-        console.log(roomBuyer);
 
         socket.to(roomBuyer).emit("update/transaction");
       } catch (err) {
         await transaction.rollback();
-        console.log(err.massage);
+        console.error(err.massage);
       }
     });
     socket.on("cancel", async (id) => {
@@ -309,49 +307,10 @@ const socketIo = (io) => {
         socket.emit("cancelData", data);
       } catch (err) {
         await transaction.rollback();
-        console.log(err.massage);
+        console.error(err.massage);
       }
     });
-    // socket.on("transaction", async () => {
-    //   try {
-    //     const token = socket?.handshake?.auth?.token;
-    //     if (isValidJwt(token, "owner")) return console.error("owner only");
-    //     const verified = jwt.verify(token, process.env.JWT_TOKEN);
-    //
-    //     const data = await transactions.findAll({
-    //       where: {
-    //         [Op.or]: [{ buyerId: verified.id }, { sellerId: verified.id }],
-    //         status: {
-    //           [Op.or]: ["Success", "Cancel", "On The Way", "Waiting Approve"],
-    //         },
-    //       },
-    //       include: [
-    //         {
-    //           model: users,
-    //           as: "buyer",
-    //           attributes: {
-    //             exclude: ["password", "createdAt", "updatedAt"],
-    //           },
-    //         },
-    //         {
-    //           model: products,
-    //           as: "product",
-    //           through: {
-    //             model: order,
-    //           },
-    //           attributes: {
-    //             exclude: ["createdAt", "updatedAt"],
-    //           },
-    //         },
-    //       ],
-    //       order: [["createdAt", "DESC"]],
-    //     });
-    //     // console.log(data)
-    //     socket.emit("transactionData", data);
-    //   } catch (err) {
-    //     console.log(err.message);
-    //   }
-    // });
+
     socket.on("onTheWay", async (payload) => {
       try {
         let data = transactions.findOne({
@@ -360,14 +319,13 @@ const socketIo = (io) => {
             status: "On The Way",
           },
         });
-        console.log(data);
         socket.emit("otwData", data);
       } catch (err) {
-        console.log(err.massage);
+        console.error(err.massage);
       }
     });
     socket.on("disconnect", () => {
-      console.log("client disconnect");
+      console.info("client disconnect");
     });
   });
 };

@@ -318,10 +318,6 @@ exports.lessOrder = async (req, res) => {
       await dataOrder.decrement({ qty }, { transaction: t });
 
       // Delete order if order qty reach zero
-      console.log(dataOrder);
-      console.log(dataOrder.qty);
-      console.log(dataOrder.qty <= 0);
-      console.log("WAHOOOOO");
       if (dataOrder.qty <= 0)
         await order.destroy({
           where: { transactionId, productId },

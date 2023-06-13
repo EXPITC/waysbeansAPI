@@ -8,11 +8,11 @@ module.exports = {
     host: process.env.HOST,
     dialect: "postgres",
     // You need diable this for local dev
-    // dialectOptions: {
-    //   ssl: {
-    //     require: true,
-    //   },
-    // },
+    dialectOptions: {
+      ssl: {
+        require: true,
+      },
+    },
     PORT: process.env.PORT_DB,
   },
   test: {
