@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class transactions extends Model {
     /**
@@ -12,40 +10,48 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       transactions.belongsTo(models.users, {
-        as: 'buyer',
+        as: "buyer",
         foreignKey: {
-          name: 'buyerId'
-        }
-      })
-      transactions.belongsTo(models.users, {
-        as: 'seller',
-        foreignKey: {
-          name: 'sellerId'
-        }
-      })
-      transactions.belongsToMany(models.products, {
-        as: 'product',
-        through: {
-          model: 'order',
+          name: "buyerId",
         },
-        foreignKey: 'transactionId'
-      })
+      });
+      transactions.belongsTo(models.users, {
+        as: "seller",
+        foreignKey: {
+          name: "sellerId",
+        },
+      });
+      transactions.belongsToMany(models.products, {
+        as: "product",
+        through: {
+          model: "order",
+        },
+        foreignKey: "transactionId",
+      });
     }
-    
-  };
-  transactions.init({
-    status: DataTypes.STRING,
-    name: DataTypes.STRING,
-    email: DataTypes.STRING,
-    phone: DataTypes.STRING,
-    attachment: DataTypes.STRING,
-    address: DataTypes.STRING,
-    sellerId: DataTypes.INTEGER,
-    buyerId: DataTypes.INTEGER,
-    price: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'transactions',
-  });
+  }
+  transactions.init(
+    {
+      status: {
+        type: DataTypes.STRING,
+        defaultValue: "Order",
+      },
+      name: DataTypes.STRING,
+      email: DataTypes.STRING,
+      phone: DataTypes.STRING,
+      attachment: DataTypes.STRING,
+      address: DataTypes.STRING,
+      sellerId: DataTypes.INTEGER,
+      buyerId: DataTypes.INTEGER,
+      price: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+    },
+    {
+      sequelize,
+      modelName: "transactions",
+    }
+  );
   return transactions;
 };

@@ -4,25 +4,28 @@
   "description": "api for WaysBeans",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
-    "client": "npm start --prefix ../Web",
-    "dev": "concurrently \"npm start\" \"npm run client\" "
+    "local": "nodemon index.js",
+    "build": "npx sequelize-cli db:migrate --env production & npx sequelize-cli db:seed:all",
+    "start": "node index.js",
+    "client": "npm start --prefix ../WaysBeans",
+    "dev": "concurrently \"npm run local\" \"npm run client\" "
   },
   "author": "tc",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "cloudinary": "^1.37.0",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "joi": "^17.4.2",
     "jsonwebtoken": "^8.5.1",
     "multer": "^1.4.3",
-    "mysql2": "^2.3.3",
+    "node-fetch": "^2.6.11",
     "pg": "^8.7.1",
-    "sequelize": "^6.12.0-alpha.1",
-    "socket.io": "^4.4.0",
-    "sequelize-cli": "^6.3.0"
+    "sequelize": "^6.32.0",
+    "sequelize-cli": "^6.3.0",
+    "socket.io": "^4.4.0"
   },
   "devDependencies": {
     "concurrently": "^6.4.0",
