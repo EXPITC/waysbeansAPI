@@ -37,7 +37,7 @@ module.exports = {
             "$2b$08$9m7ndjAYTA8b1xFNqGrqTemgAu47oOGoxPuQi5t89nwyBcZWRVBzq", //dont forget to align with ur JWT token
           fullname: "customer",
           role: "customer",
-          image: process.env.DEFAULT_PROFILE,
+          image: process.env.DEFAULT_PROFIEL_CUSTOMER,
           createdAt: "2021-12-23 00:24:21",
           updatedAt: "2021-12-23 00:24:21",
         },
