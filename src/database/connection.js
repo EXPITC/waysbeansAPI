@@ -11,11 +11,12 @@ const Sequelize = new S(
     dialect: "postgres",
     dialectModule: require("pg"),
     // Disable ssl below for local dev
-    dialectOptions: {
-      ssl: {
-        require: true,
-      },
-    },
+    // dialectOptions: {
+    //   ssl: {
+    //     require: true,
+    //   },
+    // },
+    // Stop at here
     logging: console.info,
     freezeTableName: true,
     pool: {
