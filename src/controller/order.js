@@ -84,10 +84,25 @@ exports.addOrder = async (req, res) => {
 
     // Commit
     await t.commit();
+
+    const updatedTransaction = await transactions.findOne({
+      where: { id: transactionId },
+      include: {
+        model: products,
+        as: "product",
+        through: {
+          model: order,
+        },
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
+        },
+      },
+    });
+
     res.status(200).send({
       status: "success add",
       data: {
-        order: dataTransaction.product,
+        order: updatedTransaction.product,
       },
     });
   } catch (err) {

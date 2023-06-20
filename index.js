@@ -12,6 +12,9 @@ const httpServer = http.createServer(app);
 
 app.use(express.json());
 
+// Enable this for local dev
+// app.use(cors());
+
 const corsConf = {
   origin: process.env.FE_ORIGIN,
   credentials: true,
