@@ -50,6 +50,12 @@ exports.owner = async (req, res, next) => {
   try {
     const { role } = req.user;
 
+    if (role === undefined)
+      return res.status(400).send({
+        status: "fail",
+        message: "status/role not found",
+      });
+
     if (role !== "owner")
       return res.status(400).send({
         status: "not owner",
